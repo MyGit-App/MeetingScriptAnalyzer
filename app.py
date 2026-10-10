@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from streamlit.errors import StreamlitSecretNotFoundError
 
 PROJECT_DIR = Path(__file__).resolve().parent
-NOTEBOOK_PATH = PROJECT_DIR / "MeetingNoteNotesAnalyzer.ipynb"
+NOTEBOOK_PATH = PROJECT_DIR / "MeetingTranscriptAnalyzer.ipynb"
 TRANSCRIPT_PATH = PROJECT_DIR / "Meeting_Transcript.txt"
 DEFAULT_MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free"
 
@@ -106,6 +106,16 @@ def render_banner() -> None:
             letter-spacing: -0.045em;
             line-height: 1.08;
           }
+          .meeting-banner__tagline {
+            position: relative;
+            z-index: 1;
+            margin: 0.4rem 0 0;
+            color: #aaf2e8;
+            font-size: 0.88rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+          }
           .meeting-banner__description {
             position: relative;
             z-index: 1;
@@ -137,7 +147,8 @@ def render_banner() -> None:
         </style>
         <header class="meeting-banner">
           <p class="meeting-banner__eyebrow"><span></span> Smarter meeting follow-through</p>
-          <h1>AI Meeting Notes Analyzer</h1>
+          <h1>Meeting Transcript Insights</h1>
+          <p class="meeting-banner__tagline">AI Powered</p>
           <p class="meeting-banner__description">
             Turn conversations into clear summaries, key topics, and prioritized next steps.
           </p>
@@ -153,7 +164,7 @@ def render_banner() -> None:
 
 
 def main() -> None:
-    st.set_page_config(page_title="AI Meeting Notes Analyzer", layout="wide")
+    st.set_page_config(page_title="Meeting Transcript Insights", layout="wide")
     render_banner()
     st.space("medium")
 
@@ -188,40 +199,26 @@ def main() -> None:
             st.exception(exc)
             return
 
-        st.subheader("Meeting summary")
+        st.subheader("Meeting Summary")
         st.write(report["meeting_summary"])
 
-        st.subheader("Key topics")
+        st.subheader("Key Topics")
         for index, topic in enumerate(report["key_topics"], start=1):
             st.markdown(f"{index}. {topic}")
 
-        st.subheader("Action items")
-        if report["action_items"]:
+        st.subheader("Action Items")
+        action_items = report["action_items"]
+        if isinstance(action_items, str):
+            st.info(action_items)
+        elif action_items:
             st.dataframe(
-                report["action_items"],
+                action_items,
                 hide_index=True,
                 width="stretch",
                 alt="Extracted action items with owners and priority levels",
             )
         else:
-            st.info("No action items identified in this meeting.")
-
-        st.subheader("Task owners")
-        if report["task_owners"]:
-            st.dataframe(
-                report["task_owners"],
-                hide_index=True,
-                width="stretch",
-                alt="Action items and their responsible owners",
-            )
-        else:
-            st.write("No task owners identified.")
-
-        st.subheader("Priority level")
-        st.info(report["priority_level"])
-
-        with st.expander("Structured report (JSON)"):
-            st.json(report)
+            st.error("The meeting report contains an invalid action-items value.")
 
 
 if __name__ == "__main__":

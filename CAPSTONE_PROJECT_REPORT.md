@@ -23,11 +23,13 @@
 ## Abstract
 
 The AI Meeting Notes Analyzer is a Python application that transforms a
-user-provided meeting transcript into a structured report. The report contains
-a concise meeting summary, key discussion topics, action items, task owners,
-and an overall priority level, with a priority assigned to each extracted
-action. The application is implemented as a LangGraph workflow, presented
-through a Streamlit web interface, and developed in a Jupyter notebook.
+user-provided meeting transcript into a structured report with exactly three
+sections: Meeting Summary, Key Topics, and Action Items. Each action item
+contains its task description, owner, and priority. If no action items are
+detected, the Action Items section displays
+`No action items identified in this meeting.` The application is implemented
+as a LangGraph workflow, presented through a Streamlit web interface, and
+developed in a Jupyter notebook.
 
 The language-model requests are sent through OpenRouter using the configured
 model identifier `nvidia/nemotron-3-ultra-550b-a55b:free`. Structured outputs
@@ -87,7 +89,7 @@ LangGraph workflow and a Streamlit interface.
 3. Generate a concise summary intended to contain three to five sentences.
 4. Identify explicit action items and their stated owners.
 5. Represent an unspecified task owner as `Owner: Not specified`.
-6. Classify overall and per-task urgency as High, Medium, or Low Priority.
+6. Classify each detected task as High, Medium, or Low Priority.
 7. Skip the priority-classification node if there are no action items.
 8. Use local text embeddings to rank relevant transcript segments.
 9. Display the report in a browser-based Streamlit interface without exposing
@@ -115,29 +117,29 @@ speakers from voice, distribute minutes, or create tasks in external systems.
 | F-03 | Summarize the meeting | Structured summary node; function-based sentence-count validation |
 | F-04 | Extract explicit action items | Structured action-extraction node |
 | F-05 | Associate owners with actions | Owner field on each action; missing values normalized |
-| F-06 | Classify task priority | Conditional priority node with overall and per-task outputs |
+| F-06 | Classify task priority | Conditional priority node returns one priority for each action |
 | F-07 | Skip classification when no tasks are found | Conditional graph edge routes directly to finalization |
 | F-08 | Produce a consolidated report | Finalization node constructs a report dictionary |
 | F-09 | Use local embeddings | CPU embeddings generated with Sentence Transformers |
 | F-10 | Hide API key from UI | Key read from environment, `.env`, or Streamlit secrets |
 | F-11 | Provide an interactive browser interface | Streamlit `app.py` |
-| F-12 | Keep workflow implementation in notebook code cells | `MeetingNoteNotesAnalyzer.ipynb` contains dictionary schemas and functions; no custom classes |
+| F-12 | Keep workflow implementation in notebook code cells | `MeetingTranscriptAnalyzer.ipynb` contains dictionary schemas and functions; no custom classes |
 
-### 2.2 Report structure
+### 2.2 Final report format
 
-The graph returns a `report` object with these keys:
+The graph returns a `report` object with exactly these keys:
 
 ```text
-meeting_summary   Concise summary text
+meeting_summary   Concise 3–5 sentence summary
 key_topics        List of discussion-topic labels
-action_items      List of tasks, owners, and per-task priorities
-task_owners       Task-to-owner list
-priority_level    Overall priority, or the no-action-items message
+action_items      List of tasks, owners, and priorities, or the no-action message
 ```
 
-When the action list is empty, `priority_level` is set to
-`No action items identified in this meeting.`. The UI also displays an
-informational message in the action-items section.
+For a non-empty list, each action item has the fields `task_description`,
+`owner`, and `priority`. When the action list is empty,
+`action_items` is the string `No action items identified in this meeting.`.
+The Streamlit app renders exactly three report headings and does not display
+additional owner, overall-priority, or JSON sections.
 
 ---
 
@@ -194,13 +196,16 @@ is placed in the `report` state field.
 | `topics` | Finds main discussion themes | Returns a list of concise topic labels |
 | `summary` | Summarizes the meeting | Returns a summary validated to 3–5 sentence-like units |
 | `actions` | Extracts explicit commitments | Returns task descriptions and owner names; normalizes missing owners |
-| `priority` | Classifies urgency | Returns an overall priority and one priority per action |
+| `priority` | Classifies urgency for each task | Returns one priority label for each action item |
 | `finalize` | Combines the completed results | Creates the stable report dictionary used by the app |
 
 The topic, summary, and action nodes are connected sequentially. After action
 extraction, `route_after_actions` checks whether the returned action list is
 truthy. If it is empty, the graph proceeds directly to finalization; otherwise
-it runs the priority node first.
+it runs the priority-classification agent first. This conditional router is
+the workflow's fifth required component; it is logic, not a separate LLM.
+The finalizer returns only `meeting_summary`, `key_topics`, and
+`action_items`.
 
 ### 3.4 Agent prompting and structured responses
 
@@ -294,11 +299,11 @@ action:
   clear commitments without the strongest urgency signals.
 - **Low Priority:** no stated urgency or deadline.
 
-The overall priority represents the most urgent task, as directed by the
-priority prompt. Classification is performed by the generative model using
-the transcript and actions. These descriptions are prompting guidance, not a
-deterministic rules engine, and the system does not independently calculate a
-priority score.
+Classification is performed by the generative model using the transcript
+and actions. These descriptions are prompting guidance, not a deterministic
+rules engine, and the system does not independently calculate a priority
+score. The output contains a priority for each task and does not calculate or
+display an overall meeting priority.
 
 The workflow checks that the priority agent returns the same number of task
 priorities as the number of extracted action items. If this check fails, it
@@ -331,7 +336,7 @@ compatible versions.
 
 | File | Role |
 |---|---|
-| `MeetingNoteNotesAnalyzer.ipynb` | Main workflow implementation, model schemas, graph construction, and notebook analysis cell |
+| `MeetingTranscriptAnalyzer.ipynb` | Main workflow implementation, model schemas, graph construction, and notebook analysis cell |
 | `app.py` | Streamlit interface, banner, API-key configuration lookup, and notebook workflow loader |
 | `Meeting_Transcript.txt` | Sample transcript preloaded into the text area |
 | `requirements.txt` | Direct dependency lower bounds |
@@ -365,14 +370,13 @@ calling the graph.
 
 ### 7.3 Results
 
-After successful analysis, the app displays:
+After successful analysis, the app displays exactly these three report
+sections:
 
-1. Meeting summary.
-2. Numbered key topics.
-3. Action items in a table, including each action's owner and priority.
-4. A separate task-owner table.
-5. Overall priority or the no-action-items message.
-6. An expandable JSON representation of the report.
+1. **Meeting Summary** — concise summary.
+2. **Key Topics** — numbered topic list.
+3. **Action Items** — task, owner, and priority table, or the exact
+   no-action-items message.
 
 The app has no sidebar. The selected OpenRouter model is controlled through
 the `OPENROUTER_MODEL` environment variable; otherwise the configured default
@@ -445,7 +449,7 @@ The Streamlit UI intentionally provides no model or key controls.
 
 ### 9.3 Run the notebook
 
-Open `MeetingNoteNotesAnalyzer.ipynb` with the project virtual environment as
+Open `MeetingTranscriptAnalyzer.ipynb` with the project virtual environment as
 the kernel. Run the workflow-definition code cell, then run the analysis cell.
 The analysis cell reads `Meeting_Transcript.txt` relative to the current
 working directory. Set the API key before running it.
@@ -528,8 +532,8 @@ Before making quality claims:
      rule for task descriptions.
    - Owners: exact/normalized owner accuracy, with a separate score for
      correctly identifying unspecified owners.
-   - Priority: per-task and overall accuracy, confusion matrix, and
-     class-wise precision/recall/F1.
+   - Priority: per-task accuracy, confusion matrix, and class-wise
+     precision/recall/F1.
 5. Record model identifier, date, prompt version, transcript length, and
    failures for reproducibility; never log secrets.
 6. Include edge cases such as no tasks, multiple owners, tentative
@@ -701,7 +705,7 @@ environment because package and provider behavior can change.
 | Actions | `task_description` | Concrete follow-up commitment |
 | Ownership | `owner` | Named person or `Owner: Not specified` |
 | Task urgency | `priority` | High, Medium, or Low Priority for one action |
-| Overall urgency | `priority_level` | Meeting action urgency, or no-actions message |
+| Empty action list | `action_items` | `No action items identified in this meeting.` |
 
 ## Appendix B: Reproducibility checklist
 

@@ -1,6 +1,6 @@
 # AI meeting notes analyzer
 
-This project analyzes a meeting transcript with a LangGraph workflow. Topic extraction, a 3–5 sentence summary, action extraction, and priority classification are separate structured-output agents. If no actions are found, the graph skips priority classification. OpenRouter supplies the chat model; transcript embeddings are generated locally with `sentence-transformers/all-MiniLM-L6-v2`.
+This project analyzes a meeting transcript with a LangGraph workflow. Topic extraction, a 3–5 sentence summary, action extraction, and conditional priority classification are separate structured-output agents. If no actions are found, the graph skips priority classification. The final report contains exactly three sections: Meeting Summary, Key Topics, and Action Items. Action items include their owner and priority; if none are found, the Action Items section displays `No action items identified in this meeting.` OpenRouter supplies the chat model; transcript embeddings are generated locally with `sentence-transformers/all-MiniLM-L6-v2`.
 
 ## Setup
 
@@ -22,7 +22,7 @@ The app has no sidebar and defaults to `nvidia/nemotron-3-ultra-550b-a55b:free`.
 
 ## Run the notebook
 
-Open [MeetingNoteNotesAnalyzer.ipynb](./MeetingNoteNotesAnalyzer.ipynb) with the project virtual environment as its kernel. The workflow schemas, validators, functions, and graph are defined in notebook code cells without custom classes; run the workflow-definition cell, then the analysis cell. The first run downloads the local embedding model.
+Open [MeetingTranscriptAnalyzer.ipynb](./MeetingTranscriptAnalyzer.ipynb) with the project virtual environment as its kernel. The workflow schemas, validators, functions, and graph are defined in notebook code cells without custom classes; run the workflow-definition cell, then the analysis cell. The first run downloads the local embedding model.
 
 ## Run the Streamlit app
 
