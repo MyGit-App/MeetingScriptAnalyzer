@@ -1,0 +1,8 @@
+langgraph>=1.0.0
+langchain-openai>=1.0.0
+langchain-huggingface>=1.0.0
+sentence-transformers>=5.0.0
+streamlit>=1.57.0
+python-dotenv>=1.0.0
+ipykernel>=6.29.0
+jupyter>=1.1.0
