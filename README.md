@@ -22,7 +22,7 @@ The app has no sidebar and defaults to `nvidia/nemotron-3-ultra-550b-a55b:free`.
 
 ## Run the notebook
 
-Open [AI_Meeting_Notes_Analyzer.ipynb](./AI_Meeting_Notes_Analyzer.ipynb) with the project virtual environment as its kernel. Run the workflow-definition cell, then the analysis cell. The first run downloads the local embedding model.
+Open [MeetingNoteNotesAnalyzer.ipynb](./MeetingNoteNotesAnalyzer.ipynb) with the project virtual environment as its kernel. The workflow schemas, validators, functions, and graph are defined in notebook code cells without custom classes; run the workflow-definition cell, then the analysis cell. The first run downloads the local embedding model.
 
 ## Run the Streamlit app
 

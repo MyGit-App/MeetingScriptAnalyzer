@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from streamlit.errors import StreamlitSecretNotFoundError
 
 PROJECT_DIR = Path(__file__).resolve().parent
-NOTEBOOK_PATH = PROJECT_DIR / "AI_Meeting_Notes_Analyzer.ipynb"
+NOTEBOOK_PATH = PROJECT_DIR / "MeetingNoteNotesAnalyzer.ipynb"
 TRANSCRIPT_PATH = PROJECT_DIR / "Meeting_Transcript.txt"
 DEFAULT_MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free"
 
@@ -49,10 +49,113 @@ def configured_api_key() -> str:
         return os.getenv("OPENROUTER_API_KEY", "")
 
 
+def render_banner() -> None:
+    st.html(
+        """
+        <style>
+          .meeting-banner {
+            position: relative;
+            overflow: hidden;
+            padding: 2.25rem 2.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 1.25rem;
+            background:
+              radial-gradient(ellipse at 90% 0%, rgba(71, 214, 199, 0.26), transparent 38%),
+              linear-gradient(120deg, #111a37 0%, #243d70 56%, #087f87 100%);
+            box-shadow: 0 16px 42px rgba(18, 36, 73, 0.18);
+            color: #f7fbff;
+          }
+          .meeting-banner::after {
+            position: absolute;
+            top: -5.5rem;
+            right: 3rem;
+            width: 15rem;
+            height: 15rem;
+            border: 1px solid rgba(255, 255, 255, 0.13);
+            border-radius: 50%;
+            box-shadow: 0 0 0 2.4rem rgba(255, 255, 255, 0.035),
+                        0 0 0 4.8rem rgba(255, 255, 255, 0.025);
+            content: "";
+            pointer-events: none;
+          }
+          .meeting-banner__eyebrow {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            margin: 0 0 0.8rem;
+            color: #aaf2e8;
+            font-size: 0.76rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+          }
+          .meeting-banner__eyebrow span {
+            width: 0.48rem;
+            height: 0.48rem;
+            border-radius: 50%;
+            background: #57e4c7;
+            box-shadow: 0 0 14px rgba(87, 228, 199, 0.8);
+          }
+          .meeting-banner h1 {
+            position: relative;
+            z-index: 1;
+            margin: 0;
+            color: #ffffff;
+            font-size: clamp(2rem, 4vw, 3.1rem);
+            font-weight: 750;
+            letter-spacing: -0.045em;
+            line-height: 1.08;
+          }
+          .meeting-banner__description {
+            position: relative;
+            z-index: 1;
+            max-width: 42rem;
+            margin: 0.85rem 0 1.35rem;
+            color: rgba(241, 247, 255, 0.82);
+            font-size: 1.04rem;
+            line-height: 1.55;
+          }
+          .meeting-banner__features {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.55rem;
+          }
+          .meeting-banner__features span {
+            padding: 0.4rem 0.72rem;
+            border: 1px solid rgba(223, 255, 250, 0.22);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.09);
+            color: #f4fffd;
+            font-size: 0.8rem;
+            font-weight: 600;
+          }
+          @media (max-width: 600px) {
+            .meeting-banner { padding: 1.6rem 1.35rem; }
+          }
+        </style>
+        <header class="meeting-banner">
+          <p class="meeting-banner__eyebrow"><span></span> Smarter meeting follow-through</p>
+          <h1>AI Meeting Notes Analyzer</h1>
+          <p class="meeting-banner__description">
+            Turn conversations into clear summaries, key topics, and prioritized next steps.
+          </p>
+          <div class="meeting-banner__features" aria-label="Workflow capabilities">
+            <span>LangGraph workflow</span>
+            <span>Action owners</span>
+            <span>Priority insights</span>
+            <span>Local embeddings</span>
+          </div>
+        </header>
+        """
+    )
+
+
 def main() -> None:
-    st.set_page_config(page_title="AI meeting notes analyzer", layout="wide")
-    st.title("AI meeting notes analyzer")
-    st.caption("Turn meeting transcripts into structured, actionable notes.")
+    st.set_page_config(page_title="AI Meeting Notes Analyzer", layout="wide")
+    render_banner()
+    st.space("medium")
 
     model_name = os.getenv("OPENROUTER_MODEL", DEFAULT_MODEL)
     api_key = configured_api_key()
