@@ -99,22 +99,26 @@ def render_banner() -> None:
           .meeting-banner h1 {
             position: relative;
             z-index: 1;
+            width: fit-content;
+            max-width: 100%;
             margin: 0;
             color: #ffffff;
             font-size: clamp(2rem, 4vw, 3.1rem);
             font-weight: 750;
             letter-spacing: -0.045em;
             line-height: 1.08;
+            font-variant: small-caps;
           }
-          .meeting-banner__tagline {
-            position: relative;
-            z-index: 1;
-            margin: 0.4rem 0 0;
-            color: #aaf2e8;
-            font-size: 0.88rem;
-            font-weight: 700;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
+          .meeting-banner__title {
+            display: block;
+          }
+          .meeting-banner__powered {
+            display: block;
+            width: 100%;
+            text-align: right;
+            font-size: 0.55em;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
           }
           .meeting-banner__description {
             position: relative;
@@ -147,8 +151,10 @@ def render_banner() -> None:
         </style>
         <header class="meeting-banner">
           <p class="meeting-banner__eyebrow"><span></span> Smarter meeting follow-through</p>
-          <h1>Meeting Transcript Insights</h1>
-          <p class="meeting-banner__tagline">AI Powered</p>
+          <h1>
+            <span class="meeting-banner__title">Meeting Transcript Insights</span>
+            <span class="meeting-banner__powered">- AI Powered</span>
+          </h1>
           <p class="meeting-banner__description">
             Turn conversations into clear summaries, key topics, and prioritized next steps.
           </p>
